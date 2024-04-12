@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 load_dotenv()
 from datasets import load_dataset
+from DatasetLoader import get_dataset
 import pandas as pd
 from haystack import Document
 from haystack.components.retrievers.in_memory import InMemoryEmbeddingRetriever
@@ -13,15 +14,17 @@ from haystack.document_stores.in_memory import InMemoryDocumentStore
 from haystack import Pipeline
 from haystack.components.writers import DocumentWriter
 
+
 if 'data' not in st.session_state:
-    dataset = load_dataset("bilgeyucel/seven-wonders", split="train")
-    st.session_state['data'] = pd.DataFrame(dataset)
+    dataset = get_dataset("articles")
+    #dataset = pd.DataFrame(load_dataset("parquet", data_files={'train': 'sevenwonders.parquet'}))
+    st.session_state['data'] = dataset
 
 if 'openai_key' not in st.session_state:
     st.session_state["openai_key"] = os.getenv("OPENAI_API_KEY")
 
 if 'small_model' not in st.session_state:
-    small_model = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
+    small_model = "multi-qa-mpnet-base-dot-v1"
     document_embedder = SentenceTransformersDocumentEmbedder(model=small_model)
     st.session_state['document_embedder'] = document_embedder
     text_embedder = SentenceTransformersTextEmbedder(model=small_model)
@@ -29,7 +32,7 @@ if 'small_model' not in st.session_state:
     st.session_state['small_model'] = small_model
 
 if 'documents' not in st.session_state:
-    documents = documents = [Document(content=st.session_state['data']["content"][index], meta=st.session_state['data']["meta"][index]) for index in st.session_state['data'].index]
+    documents = [Document(content=st.session_state['data']["content"][index], meta=st.session_state['data']["meta"][index]) for index in st.session_state['data'].index]
     st.session_state['documents'] = documents
 
 if 'document_store' not in st.session_state:
